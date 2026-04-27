@@ -1,0 +1,321 @@
+:root {
+    --primary: #ff85a2;
+    --primary-dark: #ff6b8e;
+    --bg: #fdfdfd;
+    --surface: #ffffff;
+    --text-main: #2d3436;
+    --text-sub: #636e72;
+    --danger: #ff4d4d;
+    --shadow: 0 4px 20px rgba(255, 133, 162, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: var(--bg);
+}
+
+/* 顶部栏 */
+.app-bar {
+    height: 60px;
+    background: var(--surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px 0 20px; /* 右侧增加一点间距，避开可能存在的曲面屏边缘或系统隐藏滚动区域喵！ */
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    z-index: 100;
+}
+
+.app-bar .title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.icon-btn:active { background: #f1f3f4; }
+.icon-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--text-sub);
+    transition: stroke 0.2s;
+    background: transparent !important;
+}
+.icon-btn:hover svg { stroke: var(--primary); }
+
+.card-edit-btn {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 0;
+    font-size: 14px;
+}
+.card-edit-btn:hover {
+    color: var(--primary);
+    background: #f8fafc;
+}
+
+/* 搜索栏 */
+.search-bar { padding: 12px 16px; background: var(--surface); }
+.search-bar input {
+    width: 100%;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 25px;
+    background: #f1f3f4;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+/* 内容列表 */
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    padding-bottom: 100px;
+}
+
+/* 账号卡片 */
+.account-card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.account-card:active { transform: scale(0.97); }
+
+.account-info {
+    flex: 1;
+    min-width: 0;
+    padding-right: 15px;
+}
+
+.issuer { 
+    font-size: 0.8rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; 
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.label { 
+    font-size: 1rem; color: var(--text-main); font-weight: 500; 
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.code-area { 
+    text-align: right; 
+    flex-shrink: 0;
+    padding-right: 32px;
+}
+.totp-code {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--primary);
+    font-family: 'Monaco', 'Consolas', monospace;
+    letter-spacing: 2px;
+}
+
+.progress-ring {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: var(--primary);
+    transition: width 1s linear;
+}
+
+/* 悬浮按钮 */
+.fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background: var(--primary);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 8px 25px rgba(255, 133, 162, 0.4);
+    cursor: pointer;
+    z-index: 200;
+}
+
+/* 模态框 */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start; /* 改为从顶部向下排列喵 */
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    overflow-y: auto; /* 让外层负责滚动，更安全喵 */
+    padding: 40px 0;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    margin: auto 0; /* 自动上下居中 */
+    flex-shrink: 0; /* 禁止被压缩喵！重点！ */
+    display: block; /* 显式声明为块级 */
+}
+
+.modal-content h3 { margin-top: 0; color: var(--text-main); text-align: center; }
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* 按钮组 */
+.btn-primary { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; cursor: pointer; }
+.btn-primary-small { background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+.btn-secondary { background: #f1f3f4; border: none; padding: 14px; border-radius: 12px; font-weight: 500; cursor: pointer; margin-bottom: 10px; }
+.btn-outline { background: none; border: 1.5px solid #eee; padding: 12px; border-radius: 12px; width: 100%; margin-bottom: 10px; cursor: pointer; text-align: left; font-weight: 500; }
+.btn-danger-light { background: #fff5f5; border: none; color: #ff4d4d; padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; text-align: left; font-weight: 500; }
+.btn-text { background: none; border: none; color: var(--text-sub); padding: 10px; font-weight: bold; cursor: pointer; }
+.btn-close { 
+    background: #f1f3f4; 
+    color: var(--text-main); 
+    border: none; 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-weight: bold; 
+    width: 100%; 
+    margin-top: 15px; 
+    cursor: pointer; 
+    text-align: center; 
+    transition: background 0.2s; 
+}
+.btn-close:active { background: #e2e8f0; }
+.w-full { width: 100%; }
+
+/* 设置页专用滚动及关于区域喵 */
+.settings-scroll-area {
+    width: 100%;
+    max-height: 55vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    margin: 10px 0;
+}
+.about-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #ffc0cb;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    text-align: left;
+}
+.about-title {
+    color: #ff85a2;
+    margin: 0 0 10px 0;
+    font-size: 15px;
+    text-align: center;
+}
+
+/* 锁屏界面 */
+.lock-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 40px;
+}
+.lock-content { text-align: center; width: 100%; }
+.avatar { font-size: 4rem; margin-bottom: 20px; }
+.pin-box { margin-bottom: 30px; }
+.pin-box input { background: rgba(255,255,255,0.2); border: none; color: white; text-align: center; outline: none; }
+.pin-box input::placeholder { color: rgba(255,255,255,0.6); }
+
+/* 分隔线 */
+.divider { display: flex; align-items: center; margin: 15px 0; color: #ccc; font-size: 0.8rem; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #eee; }
+.divider span { padding: 0 10px; }
+
+/* 提示框 */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    display: none;
+    z-index: 3000;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }

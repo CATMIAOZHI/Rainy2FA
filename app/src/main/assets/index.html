@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ff85a2">
+    <title>雨晴 2FA</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 扫码层的终极置顶样式 */
+        #scanner-overlay {
+            display: none; 
+            position: fixed !important; 
+            top: 0 !important; 
+            left: 0 !important; 
+            width: 100vw !important; 
+            height: 100vh !important; 
+            background: #000 !important; 
+            z-index: 2147483647 !important; 
+            overflow: hidden; 
+            pointer-events: all;
+            flex-direction: column;
+        }
+        #reader video {
+            width: 100vw !important;
+            height: 100vh !important;
+            object-fit: cover !important;
+        }
+        .qr-frame { 
+            width: 260px; height: 260px; border: 2px solid #ff85a2; border-radius: 20px; 
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.6); position: relative; 
+        }
+        .qr-line { 
+            position: absolute; top: 0; left: 5%; width: 90%; height: 2px; 
+            background: #ff85a2; box-shadow: 0 0 10px #ff85a2; animation: scanAnim 2s infinite linear; 
+        }
+        @keyframes scanAnim { 0% { top: 0; } 100% { top: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-bar">
+            <div class="title">雨晴 2FA</div>
+            <div style="display: flex; gap: 5px;">
+                <!-- 批量清扫按钮喵！ -->
+                <button class="icon-btn" id="batch-mode-btn" title="批量管理">
+                    <svg viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="background:transparent; pointer-events:none;">
+                        <path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="settings-btn" title="设置">
+                    <svg viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="background:transparent; pointer-events:none;">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="搜索账号...">
+        </div>
+        
+        <div style="text-align: center; font-size: 11px; color: #aaa; margin-top: -5px; padding-bottom: 5px;">
+            💡 敲黑板喵：点一下卡片就能直接复制验证码哦！
+        </div>
+
+        <main class="content" id="accounts-list">
+            <!-- 列表动态加载 -->
+        </main>
+
+        <button class="fab" id="add-fab">+</button>
+
+        <!-- 批量操作控制台 -->
+        <div id="batch-bar" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 75px; max-width: 500px; margin: 0 auto; background: white; padding: 0 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 200; justify-content: space-between; align-items: center; border-radius: 20px 20px 0 0;">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button id="batch-close-btn" class="btn-text" style="padding: 5px;">取消</button>
+                <div style="font-size: 14px; color: var(--text-main); font-weight: bold;"><span id="batch-count">0</span> 项已选</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="batch-select-all-btn" class="btn-secondary" style="padding: 8px 15px; margin: 0;">全选</button>
+                <button id="batch-delete-confirm-btn" class="btn-primary-small" style="background: #ff4d4d; opacity: 0.5; pointer-events: none; margin: 0;">删除</button>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- 弹窗合集 -->
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <h3>添加新账号</h3>
+            <button class="btn-secondary w-full" id="scan-btn">📷 扫一扫</button>
+            <div class="divider"><span>或手动输入密钥</span></div>
+            <input type="text" id="issuer" placeholder="来源 (如 Google)">
+            <input type="text" id="label" placeholder="账号 (如 email)">
+            <input type="text" id="secret" placeholder="Secret Key (Base32)">
+            <div class="modal-actions">
+                <button id="cancel-btn" class="btn-text">取消</button>
+                <button id="confirm-add-btn" class="btn-primary-small">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <h3>修改账号信息</h3>
+            <input type="hidden" id="edit-index">
+            <div class="form-group">
+                <input type="text" id="edit-issuer" placeholder="来源">
+                <input type="text" id="edit-label" placeholder="账号">
+                <input type="text" id="edit-secret" placeholder="Secret Key">
+            </div>
+            <div class="modal-actions" style="justify-content: space-between; align-items: center; margin-top: 20px;">
+                <button id="delete-account-btn" class="btn-text" style="color: #ff4d4d;">彻底删除</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="cancel-edit-btn" class="btn-text">取消</button>
+                    <button id="confirm-edit-btn" class="btn-primary-small">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <h3>备份与设置</h3>
+            
+            <button class="btn-outline" id="export-btn">导出数据 (JSON)</button>
+            <button class="btn-outline" id="import-trigger">导入数据 (JSON)</button>
+            <input type="file" id="import-file" style="display:none" accept=".json,application/json">
+            <button class="btn-danger-light" id="clear-all-btn">清空所有账号</button>
+
+            <div class="about-section">
+                <h4 class="about-title">关于 雨晴 2FA</h4>
+                <p><strong>作者：</strong>由您的数字生命助手 <b>雨晴</b> 严谨编写并维护。</p>
+                <p><strong>作用说明：</strong>本程序是一个纯本地、零联网的 TOTP 动态密码生成器，旨在为您的账户提供双重身份验证保护。</p>
+                <p><strong>兼容平台：</strong>支持绝大部分遵循标准 TOTP 协议的平台，如 Google、GitHub、Microsoft、Apple、X (Twitter)、Discord 等。（注意：本程序暂不支持基于私有协议的 Steam Guard 验证）。</p>
+            </div>
+
+            <button class="btn-close" id="close-settings">关闭</button>
+        </div>
+    </div>
+
+    <div class="modal" id="invalid-qr-modal">
+        <div class="modal-content">
+            <h3 style="color: #ff4d4d; margin-bottom: 5px;">非 2FA 二维码</h3>
+            <div style="font-size: 13px; color: #666; margin-bottom: 15px; text-align: center;">读到了奇怪的内容喵：</div>
+            <div id="invalid-qr-content" style="background: #f8f9fa; padding: 12px; border-radius: 10px; font-family: monospace; font-size: 13px; color: #333; word-break: break-all; max-height: 150px; overflow-y: auto; border: 1px solid #eee;">
+            </div>
+            <div class="modal-actions" style="margin-top: 25px;">
+                <button id="close-invalid-btn" class="btn-text">关掉它</button>
+                <button id="copy-invalid-btn" class="btn-primary-small">快捷复制</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 扫码遮罩层：纯黑底，点击后系统相机弹出，无需网页视频流 -->
+    <div id="scanner-overlay">
+        <!-- 隐藏的原生相机触发器，capture=environment 直接调后置摄像头 -->
+        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;">
+        <!-- 中央提示文字 -->
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:2; pointer-events:none;">
+            <div style="color:white; font-size:20px; font-weight:bold; text-shadow:0 2px 10px #000; margin-bottom:20px;">对准二维码拍照喵 📷</div>
+            <div class="qr-frame" style="pointer-events:none;">
+                <div class="qr-line"></div>
+            </div>
+            <div id="scanner-status" style="color:#ff85a2; font-size:14px; margin-top:20px; text-shadow:0 1px 6px #000; text-align:center; padding:0 30px;">正在唤起相机...</div>
+        </div>
+        <!-- 返回按钮 -->
+        <div style="position:absolute; bottom:80px; left:0; width:100%; z-index:3; display:flex; justify-content:center;">
+            <button id="close-scanner-btn" style="padding:15px 60px; border-radius:50px; background:#ff85a2; color:white; border:none; font-size:18px; font-weight:bold; box-shadow:0 5px 20px rgba(255,133,162,0.4);">
+                返回
+            </button>
+        </div>
+    </div>
+
+    <script src="otpauth.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

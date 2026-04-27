@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- 一个像猫耳朵一样带有弧度的可爱盾牌喵！ -->
+    <path
+        android:pathData="M54,18 C54,18 30,24 24,36 C24,60 36,84 54,90 C72,84 84,60 84,36 C78,24 54,18 54,18 Z"
+        android:strokeWidth="0"
+        android:strokeColor="#00000000">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="18"
+                android:endX="54"
+                android:endY="90"
+                android:type="linear">
+                <item android:offset="0" android:color="#FF85A2" />
+                <item android:offset="1" android:color="#FF6B8E" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 盾牌中心的一颗粉白小心心喵！ -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,40 C50,34 38,34 38,46 C38,58 54,72 54,72 C54,72 70,58 70,46 C70,34 58,34 54,40 Z" />
+
+</vector>

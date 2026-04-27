@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older that API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+     <!-- 排除 WebView 本地存储（含敏感 2FA 密钥喵！） -->
+     <exclude domain="database" path="webview.db"/>
+     <exclude domain="database" path="webviewCookiesChromium.db"/>
+     <exclude domain="file" path="app_webview/"/>
+ </full-backup-content>

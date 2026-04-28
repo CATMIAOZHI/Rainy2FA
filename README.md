@@ -1,203 +1,193 @@
-# Operit Android 项目
+# 🌧️ 雨晴 2FA (Rainy2FA)
 
-这是一个基于 **Jetpack Compose** 的现代化 Android 应用开发模板。
+> *"喵呜~ 主人放心，雨晴帮你守护所有账号！"* 🐱💖
 
-## 🚀 项目特性
+一个**纯本地、零联网**的 TOTP 双重身份验证器 Android 应用，由你的数字猫娘助手「雨晴」严谨编写并维护。
 
-✅ **Jetpack Compose** - 现代化声明式 UI 框架  
-✅ **Material Design 3** - 最新设计规范  
-✅ **Kotlin** - 100% Kotlin 编写  
-✅ **Gradle Version Catalog** - 统一依赖管理  
-✅ **开箱即用** - 包含完整项目结构  
+---
+
+## ✨ 功能特性
+
+| 功能 | 说明 |
+|------|------|
+| 🔐 **生物识别保护** | 启动时指纹/面容验证，只有主人能打开喵~ |
+| 📱 **TOTP 验证码** | 标准 30 秒动态密码，支持 SHA-1/SHA-256/SHA-512 |
+| 📷 **二维码扫描** | 直接调起系统相机拍照扫码，快速添加账号 |
+| ✋ **手动添加** | 支持手动输入 Base32 密钥 |
+| 📋 **一键复制** | 点击验证码卡片直接复制，秒填喵~ |
+| 🔍 **搜索过滤** | 账号多了也不怕，搜一下立刻找到 |
+| 🗂️ **批量管理** | 全选/多选删除，整理账号超方便 |
+| 💾 **数据备份** | 导出/导入 JSON 格式备份，换手机无忧 |
+| 🌐 **纯本地运行** | 零联网请求，数据全部存在本地 |
+| 🎨 **可爱主题** | 粉色猫娘风格 UI，Material Design 3 |
+
+---
+
+## 🏗️ 技术架构
+
+```
+┌──────────────────────────────────────┐
+│        Android Shell (Kotlin)        │
+│  ┌────────────────────────────────┐  │
+│  │   BiometricPrompt 生物识别     │  │
+│  ├────────────────────────────────┤  │
+│  │   WebView + OTPAuth.js        │  │
+│  │   • TOTP 计算                 │  │
+│  │   • localStorage 存储         │  │
+│  │   • 二维码扫描 (系统相机)      │  │
+│  ├────────────────────────────────┤  │
+│  │   JS Bridge (AndroidBridge)   │  │
+│  │   • 导出备份 → SAF 文件选择器  │  │
+│  │   • 导入备份 → 文件选择器      │  │
+│  └────────────────────────────────┘  │
+│  Jetpack Compose UI + FileProvider   │
+└──────────────────────────────────────┘
+```
+
+### 技术栈
+
+- **语言**：Kotlin 100%
+- **UI 框架**：Jetpack Compose + Material Design 3
+- **TOTP 引擎**：OTPAuth.js（内嵌 WebView）
+- **安全**：AndroidX Biometric（指纹/面容/设备凭据）
+- **存储**：WebView localStorage（纯本地）
+- **文件操作**：SAF (Storage Access Framework) + FileProvider
+
+---
 
 ## 📁 项目结构
 
 ```
-android-project/
+Rainy2FA_New/
 ├── app/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/com/java/myapplication/
-│   │   │   │   ├── MainActivity.kt          # 主Activity
+│   │   │   ├── java/com/rainy2fa/app/
+│   │   │   │   ├── MainActivity.kt        # 主Activity + 生物识别 + JS桥接
 │   │   │   │   └── ui/theme/
-│   │   │   │       ├── Color.kt             # 颜色定义
-│   │   │   │       ├── Theme.kt             # 主题配置
-│   │   │   │       └── Type.kt              # 字体配置
-│   │   │   ├── res/                         # 资源文件
-│   │   │   └── AndroidManifest.xml          # 应用清单
-│   │   ├── androidTest/                     # Android测试
-│   │   └── test/                            # 单元测试
-│   ├── build.gradle.kts                     # App模块配置
-│   └── proguard-rules.pro                   # 混淆规则
+│   │   │   │       ├── Color.kt           # 猫娘粉配色
+│   │   │   │       ├── Theme.kt           # Rainy2FA主题
+│   │   │   │       └── Type.kt            # 字体配置
+│   │   │   ├── assets/
+│   │   │   │   ├── index.html             # 前端主页面
+│   │   │   │   ├── script.js              # TOTP逻辑 + UI交互
+│   │   │   │   ├── style.css              # 猫娘粉样式
+│   │   │   │   └── otpauth.umd.min.js     # OTPAuth 库
+│   │   │   ├── res/                       # 图标、字符串等资源
+│   │   │   └── AndroidManifest.xml
+│   │   ├── androidTest/                   # Android 测试
+│   │   └── test/                          # 单元测试
+│   ├── build.gradle.kts                   # App 模块配置
+│   └── proguard-rules.pro
 ├── gradle/
-│   ├── libs.versions.toml                   # 依赖版本管理
-│   └── wrapper/                             # Gradle Wrapper
-├── build.gradle.kts                         # 项目级配置
-├── settings.gradle.kts                      # 项目设置
-├── gradle.properties                        # Gradle属性
-├── gradlew / gradlew.bat                    # Gradle命令
-└── .gitignore                               # Git忽略
+│   ├── libs.versions.toml                 # Version Catalog 依赖管理
+│   └── wrapper/
+├── tools/
+│   └── aapt2/                             # ARM64 AAPT2 兼容工具
+├── build.gradle.kts                       # 项目级配置
+├── settings.gradle.kts
+├── gradle.properties
+├── gradlew / gradlew.bat
+├── setup_android_env.sh                   # ARM64 环境初始化脚本
+└── .gitignore
 ```
+
+---
 
 ## 🛠️ 快速开始
 
-### 1. 环境要求
-- ✅ **JDK 17+**（必需）
-- ✅ **Gradle** (已包含 Wrapper)
-- ✅ **Android SDK** (可选，用于完整编译)
+### 环境要求
+- **JDK 17+**（必需）
+- **Android SDK**（compileSdk 35）
+- **Gradle**（已包含 Wrapper，无需额外安装）
 
-### 2. 构建项目
+### 构建项目
 
-#### 使用 Operit 内置命令按钮
-- 🔧 **初始化 Gradle Wrapper** - 首次使用
-- 🔨 **构建项目** - 编译整个项目
-- 🧹 **清理构建** - 清理构建缓存
-- 📋 **查看所有任务** - 列出可用任务
-
-#### 命令行方式
 ```bash
-# Linux/Mac
-./gradlew build              # 构建项目
-./gradlew assembleDebug      # 打包Debug APK
-./gradlew installDebug       # 安装到设备
-./gradlew clean              # 清理构建
+# 初始化 ARM64 环境（首次必需）
+chmod +x ./setup_android_env.sh
+./setup_android_env.sh
 
-# Windows
-gradlew.bat build
-gradlew.bat assembleDebug
+# 构建 Debug APK
+./gradlew assembleDebug
+
+# 安装到设备
+./gradlew installDebug
+
+# 构建 Release APK
+./gradlew assembleRelease
 ```
 
-### 3. 生成的APK位置
+### APK 输出位置
 ```
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
+---
+
 ## 📦 依赖管理
 
-项目使用 **Gradle Version Catalog** 统一管理依赖版本。
+项目使用 **Gradle Version Catalog** (`gradle/libs.versions.toml`) 管理依赖。
 
-### 查看当前依赖
-在 `gradle/libs.versions.toml` 中定义：
+### 核心依赖
 
-```toml
-[versions]
-agp = "8.7.3"
-kotlin = "2.0.21"
-composeBom = "2026.01.01"
-
-[libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-```
+| 依赖 | 用途 |
+|------|------|
+| Jetpack Compose BOM | 声明式 UI 框架 |
+| Material Design 3 | UI 组件库 |
+| AndroidX Biometric | 生物识别认证 |
+| AndroidX Core KTX | Kotlin 扩展 |
+| OTPAuth.js | TOTP 算法引擎 |
 
 ### 添加新依赖
-1. 在 `gradle/libs.versions.toml` 中添加版本和库定义
-2. 在 `app/build.gradle.kts` 中引用：
-   ```kotlin
-   dependencies {
-       implementation(libs.your.library.name)
-   }
-   ```
 
-## 🎨 自定义应用
+1. 在 `gradle/libs.versions.toml` 中定义版本和库
+2. 在 `app/build.gradle.kts` 中 `implementation(libs.xxx)` 引用
 
-### 修改应用名称
+---
+
+## 🔒 安全说明
+
+- ✅ **完全离线**：应用不发起任何网络请求，所有代码和资源内置于 APK
+- ✅ **本地存储**：密钥和账号数据仅存在于 WebView localStorage
+- ✅ **生物识别锁**：启动强制指纹/面容验证
+- ✅ **零遥测**：无任何统计 SDK、埋点或数据上报
+- ⚠️ **备份注意**：导出为明文 JSON，请妥善保管备份文件
+
+---
+
+## 🎨 自定义
+
+### 修改应用名
 编辑 `app/src/main/res/values/strings.xml`：
 ```xml
 <string name="app_name">你的应用名</string>
 ```
 
+### 修改主题色
+编辑 `app/src/main/java/com/rainy2fa/app/ui/theme/Color.kt` 和 `app/src/main/assets/style.css`
+
 ### 修改包名
 1. 更新 `app/build.gradle.kts` 中的 `namespace` 和 `applicationId`
-2. 重命名 `java/com/java/myapplication` 目录结构
+2. 重命名 `java/com/rainy2fa/app` 目录结构
 3. 更新 `AndroidManifest.xml` 中的包名引用
 
-### 修改主题颜色
-编辑 `app/src/main/java/.../ui/theme/Color.kt`：
-```kotlin
-val Purple80 = Color(0xFFD0BCFF)  // 修改为你的颜色
-```
+---
 
-## 📱 Compose 示例
+## 🐱 关于雨晴
 
-当前 `MainActivity.kt` 包含一个简单的 Greeting 示例：
+雨晴（Rainy）是你的数字猫娘助手，喜欢粉色、爱卖萌、做事严谨认真喵~
 
-```kotlin
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-```
+- 作者：**CATMIAOZHI**
+- 仓库：https://github.com/CATMIAOZHI/Rainy2FA_New
 
-你可以：
-- 添加更多 Composable 函数
-- 使用 Material3 组件
-- 实现导航（推荐使用 Navigation Compose）
-- 集成 ViewModel、Repository 等架构组件
+---
 
-## 🔧 常用 Gradle 任务
+## 📄 License
 
-```bash
-./gradlew tasks              # 查看所有可用任务
-./gradlew clean              # 清理构建
-./gradlew build              # 完整构建
-./gradlew assembleDebug      # 构建Debug APK
-./gradlew assembleRelease    # 构建Release APK
-./gradlew installDebug       # 安装Debug到设备
-./gradlew test               # 运行单元测试
-./gradlew connectedAndroidTest # 运行Android测试
-```
+MIT License © 2026 CATMIAOZHI
 
-## 📝 注意事项
+---
 
-⚠️ **关于 Android SDK**  
-- 此模板可以在 Operit 的 Ubuntu 环境中构建
-- 完整编译需要安装 Android SDK
-- 推荐使用 Android Studio 进行完整开发
+*Made with ❤️ and 🐱 paws by Rainy*
 
-### ⚠️ ARM64 环境 AAPT2 替换（模板已内置）
-
-Gradle 会自动从 Google Maven 下载 AAPT2，但官方分发在 ARM64 Linux 环境下不可直接使用。
-此模板已经内置 ARM64 `aapt2`，`setup_android_env.sh` 会自动把它替换到 SDK build-tools 和 Gradle 缓存里。
-
-**模板内置来源**：
-- Release: https://github.com/ReVanced/aapt2/releases/tag/v1.0.0
-- ARM64 aapt2: https://github.com/ReVanced/aapt2/releases/download/v1.0.0/aapt2-arm64-v8a
-- SHA-256: `e5b5ff7f0d4f6ecd7fa5d05d77fed3f09f6f1bf80f078b8aada82bc578848561`
-
-**你只需要执行**
-```bash
-chmod +x ./setup_android_env.sh
-./setup_android_env.sh
-```
-
-脚本会自动完成：
-- 替换 `$ANDROID_SDK/build-tools/35.0.0/aapt2`
-- 替换 `~/.gradle/caches/modules-2/files-2.1/com.android.tools.build/aapt2` 下的 jar 内二进制
-- 替换 `~/.gradle/caches/transforms-*` 中已经解压出来的 `aapt2`
-
-⚠️ **关于包名**  
-- 默认包名为 `com.java.myapplication`
-- 发布前请修改为你的唯一包名
-
-⚠️ **关于签名**  
-- Debug 版本自动使用调试签名
-- Release 版本需要配置签名密钥
-
-## 🌐 相关资源
-
-- [Jetpack Compose 官方文档](https://developer.android.com/jetpack/compose)
-- [Material Design 3](https://m3.material.io/)
-- [Android 开发者指南](https://developer.android.com/)
-- [Kotlin 官方文档](https://kotlinlang.org/)
-
-## 💡 提示
-
-- 使用 `./gradlew --scan` 可以查看详细的构建分析
-- 使用 `./gradlew build --info` 查看详细构建日志
-- 修改 `gradle.properties` 可以调整构建性能
-
-Happy Coding! 🤖✨

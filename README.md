@@ -4,6 +4,8 @@
 
 一个**纯本地、零联网**的 TOTP 双重身份验证器 Android 应用，由你的数字猫娘助手「雨晴」严谨编写并维护。
 
+[![Release](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml/badge.svg)](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml)
+
 ---
 
 ## ✨ 功能特性
@@ -20,6 +22,14 @@
 | 💾 **数据备份** | 导出/导入 JSON 格式备份，换手机无忧 |
 | 🌐 **纯本地运行** | 零联网请求，数据全部存在本地 |
 | 🎨 **可爱主题** | 粉色猫娘风格 UI，Material Design 3 |
+
+---
+
+## 📦 下载
+
+前往 [Releases](https://github.com/CATMIAOZHI/Rainy2FA/releases) 页面下载最新签名 APK。
+
+> ⚠️ 请下载 Release 页面的 APK，不要直接克隆源码安装 Debug 版本。
 
 ---
 
@@ -58,7 +68,9 @@
 ## 📁 项目结构
 
 ```
-Rainy2FA_New/
+Rainy2FA/
+├── .github/workflows/
+│   └── release.yml                        # GitHub Actions 自动构建 + 发布
 ├── app/
 │   ├── src/
 │   │   ├── main/
@@ -66,7 +78,7 @@ Rainy2FA_New/
 │   │   │   │   ├── MainActivity.kt        # 主Activity + 生物识别 + JS桥接
 │   │   │   │   └── ui/theme/
 │   │   │   │       ├── Color.kt           # 猫娘粉配色
-│   │   │   │       ├── Theme.kt           # Rainy2FA主题
+│   │   │   │       ├── Theme.kt           # Rainy2FA 主题
 │   │   │   │       └── Type.kt            # 字体配置
 │   │   │   ├── assets/
 │   │   │   │   ├── index.html             # 前端主页面
@@ -98,30 +110,39 @@ Rainy2FA_New/
 
 ### 环境要求
 - **JDK 17+**（必需）
-- **Android SDK**（compileSdk 35）
-- **Gradle**（已包含 Wrapper，无需额外安装）
+- **Android Studio**（推荐）或 Android SDK 命令行工具
 
-### 构建项目
+### 方式一：Android Studio（推荐）
+
+1. 用 Android Studio 打开本项目根目录
+2. 等待 Gradle 同步完成
+3. 选择设备，点击 Run ▶ 即可
+
+### 方式二：命令行
 
 ```bash
-# 初始化 ARM64 环境（首次必需）
-chmod +x ./setup_android_env.sh
-./setup_android_env.sh
-
 # 构建 Debug APK
 ./gradlew assembleDebug
 
-# 安装到设备
-./gradlew installDebug
-
-# 构建 Release APK
+# 构建 Release 签名 APK
 ./gradlew assembleRelease
+
+# 安装 Debug APK 到设备
+./gradlew installDebug
 ```
+
+> ⚠️ **ARM64 / Linux 环境**（如 Operit）：Gradle 从 Google Maven 下载的 AAPT2 在 ARM64 下不可直接使用。执行以下脚本一键修复：
+> ```bash
+> chmod +x ./setup_android_env.sh
+> ./setup_android_env.sh
+> ```
 
 ### APK 输出位置
-```
-app/build/outputs/apk/debug/app-debug.apk
-```
+
+| 构建类型 | 路径 |
+|---------|------|
+| Debug | `app/build/outputs/apk/debug/app-debug.apk` |
+| Release | `app/build/outputs/apk/release/app-release.apk` |
 
 ---
 

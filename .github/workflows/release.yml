@@ -26,18 +26,8 @@ jobs:
         with:
           packages: 'platforms;android-35 build-tools;35.0.0'
 
-      - name: Generate Keystore
-        run: |
-          keytool -genkey -v \
-            -keystore release.jks \
-            -alias rainy2fa \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass rainy2fa \
-            -keypass rainy2fa \
-            -dname "CN=Rainy2FA, OU=Rainy, O=CATMIAOZHI, C=CN" \
-            -noprompt
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.jks
 
       - name: Grant Gradlew Permission
         run: chmod +x gradlew

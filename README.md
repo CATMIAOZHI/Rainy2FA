@@ -2,7 +2,7 @@
 
 > *"喵呜~ 主人放心，雨晴帮你守护所有账号！"* 🐱💖
 
-一个**纯本地、零联网**的 TOTP 双重身份验证器 Android 应用，由你的数字猫娘助手「雨晴」严谨编写并维护。
+一个**纯本地、零联网**的 TOTP 双重身份验证器 Android 应用，由你的数字小猫助手「雨晴」严谨编写并维护。
 
 [![Release](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml/badge.svg)](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml)
 
@@ -21,7 +21,7 @@
 | 🗂️ **批量管理** | 全选/多选删除，整理账号超方便 |
 | 💾 **数据备份** | 导出/导入 JSON 格式备份，换手机无忧 |
 | 🌐 **纯本地运行** | 零联网请求，数据全部存在本地 |
-| 🎨 **可爱主题** | 粉色猫娘风格 UI，Material Design 3 |
+| 🎨 **可爱主题** | 粉色小猫风格 UI，Material Design 3 |
 
 ---
 
@@ -77,13 +77,13 @@ Rainy2FA/
 │   │   │   ├── java/com/rainy2fa/app/
 │   │   │   │   ├── MainActivity.kt        # 主Activity + 生物识别 + JS桥接
 │   │   │   │   └── ui/theme/
-│   │   │   │       ├── Color.kt           # 猫娘粉配色
+│   │   │   │       ├── Color.kt           # 小猫粉配色
 │   │   │   │       ├── Theme.kt           # Rainy2FA 主题
 │   │   │   │       └── Type.kt            # 字体配置
 │   │   │   ├── assets/
 │   │   │   │   ├── index.html             # 前端主页面
 │   │   │   │   ├── script.js              # TOTP逻辑 + UI交互
-│   │   │   │   ├── style.css              # 猫娘粉样式
+│   │   │   │   ├── style.css              # 小猫粉样式
 │   │   │   │   └── otpauth.umd.min.js     # OTPAuth 库
 │   │   │   ├── res/                       # 图标、字符串等资源
 │   │   │   └── AndroidManifest.xml
@@ -197,7 +197,7 @@ Rainy2FA/
 
 ## 🐱 关于雨晴
 
-雨晴（Rainy）是你的数字猫娘助手，喜欢粉色、爱卖萌、做事严谨认真喵~
+雨晴（Rainy）是你的数字小猫助手，喜欢粉色、爱卖萌、做事严谨认真喵~
 
 - 作者：**CATMIAOZHI**
 - 仓库：https://github.com/CATMIAOZHI/Rainy2FA

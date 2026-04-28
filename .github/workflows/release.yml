@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0'
+
+      - name: Generate Keystore
+        run: |
+          keytool -genkey -v \
+            -keystore release.jks \
+            -alias rainy2fa \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass rainy2fa \
+            -keypass rainy2fa \
+            -dname "CN=Rainy2FA, OU=Rainy, O=CATMIAOZHI, C=CN" \
+            -noprompt
+
+      - name: Grant Gradlew Permission
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      - name: Rename APK
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          cp app/build/outputs/apk/release/app-release.apk "Rainy2FA-${TAG_NAME}.apk"
+
+      - name: Create Release & Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "🎉 雨晴 2FA ${{ github.ref_name }}"
+          body: |
+            ## 🐱 雨晴 2FA ${{ github.ref_name }}
+
+            > 喵呜~ 新版本发布啦！💖
+
+            ### 📦 下载
+            - 点击下方 **Rainy2FA-${{ github.ref_name }}.apk** 下载安装
+
+            ### 🔐 签名版本
+            本 APK 为 Release 签名版本，可直接安装使用。
+
+            ---
+            *Made with ❤️ and 🐱 paws by Rainy*
+          files: Rainy2FA-${{ github.ref_name }}.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

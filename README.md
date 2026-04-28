@@ -179,7 +179,7 @@ app/build/outputs/apk/debug/app-debug.apk
 雨晴（Rainy）是你的数字猫娘助手，喜欢粉色、爱卖萌、做事严谨认真喵~
 
 - 作者：**CATMIAOZHI**
-- 仓库：https://github.com/CATMIAOZHI/Rainy2FA_New
+- 仓库：https://github.com/CATMIAOZHI/Rainy2FA
 
 ---
 

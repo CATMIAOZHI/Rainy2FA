@@ -5,6 +5,7 @@
 一个**纯本地、零联网**的 TOTP 双重身份验证器 Android 应用，由你的数字小猫助手「雨晴」严谨编写并维护。
 
 [![Release](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml/badge.svg)](https://github.com/CATMIAOZHI/Rainy2FA/actions/workflows/release.yml)
+[![Version](https://img.shields.io/github/v/release/CATMIAOZHI/Rainy2FA?color=ff85a2&style=flat-square)](https://github.com/CATMIAOZHI/Rainy2FA/releases/latest)
 
 ---
 

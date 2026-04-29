@@ -342,7 +342,27 @@ fun MainWebView(
                 }
 
                 addJavascriptInterface(jsInterface, "AndroidBridge")
-                webViewClient = WebViewClient()
+                webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView?,
+                        request: android.webkit.WebResourceRequest?
+                    ): Boolean {
+                        val url = request?.url?.toString() ?: return false
+                        // file:// 资产保持内部加载，外部 https 链接交给系统浏览器喵
+                        return if (url.startsWith("file:///android_asset/")) {
+                            false
+                        } else if (url.startsWith("https://") || url.startsWith("http://")) {
+                            try {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "无法打开链接喵~", Toast.LENGTH_SHORT).show()
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
                 
                 // 彻底干掉 WebView 系统级的滚动条和回弹光晕喵！
                 isVerticalScrollBarEnabled = false

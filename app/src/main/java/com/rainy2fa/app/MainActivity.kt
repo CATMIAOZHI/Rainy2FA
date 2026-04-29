@@ -51,6 +51,7 @@ class MainActivity : FragmentActivity() {
         const val REQ_CAMERA_CAPTURE = 101
         const val REQ_FILE_PICKER = 102
         const val REQ_FILE_CREATE = 103
+        const val REQ_GALLERY_IMAGE_PICK = 104
     }
     
     private val isAuthenticated = mutableStateOf(false)
@@ -109,14 +110,18 @@ class MainActivity : FragmentActivity() {
                         onWebPermissionRequested = { request ->
                             handleWebPermissionRequest(request)
                         },
-                        onFileChooserRequested = { callback, isCameraCapture ->
+                        onFileChooserRequested = { callback, isCameraCapture, acceptTypes ->
                             // 如果之前有卡死的 callback，先给它个 null 痛快！
                             fileChooserCallback?.onReceiveValue(null)
                             fileChooserCallback = callback
 
                             if (isCameraCapture) {
                                 launchCameraIntent()
+                            } else if (acceptTypes.any { it.startsWith("image/") }) {
+                                // 图库选取图片
+                                launchImagePickerIntent()
                             } else {
+                                // JSON 导入等
                                 launchFilePickerIntent()
                             }
                         },
@@ -129,6 +134,17 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun launchCameraIntent() {
+        // Android 6+ 必须先检查 CAMERA 运行时权限
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                REQ_CAMERA_PERMISSION
+            )
+            // 权限未授予，先不启动相机；权限结果回调中重试
+            return
+        }
         try {
             val qrDir = File(filesDir, "qr_scans")
             if (!qrDir.exists()) qrDir.mkdirs()
@@ -141,11 +157,27 @@ class MainActivity : FragmentActivity() {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                 putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri)
                 addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivityForResult(intent, REQ_CAMERA_CAPTURE)
         } catch (e: Exception) {
             Toast.makeText(this, "相机启动失败: ${e.message}", Toast.LENGTH_LONG).show()
-            launchFilePickerIntent()
+            // 回退：尝试打开图库
+            launchImagePickerIntent()
+        }
+    }
+
+    private fun launchImagePickerIntent() {
+        try {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+            }
+            startActivityForResult(intent, REQ_GALLERY_IMAGE_PICK)
+        } catch (e: Exception) {
+            Toast.makeText(this, "图库启动失败", Toast.LENGTH_SHORT).show()
+            fileChooserCallback?.onReceiveValue(null)
+            fileChooserCallback = null
         }
     }
 
@@ -153,7 +185,6 @@ class MainActivity : FragmentActivity() {
         try {
             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
-                // 严格限制为 json 格式喵！
                 type = "application/json"
             }
             startActivityForResult(intent, REQ_FILE_PICKER)
@@ -226,9 +257,14 @@ class MainActivity : FragmentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_CAMERA_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 权限已授予，重试相机启动
                 pendingPermissionRequest?.grant(pendingPermissionRequest?.resources)
+                launchCameraIntent()
             } else {
                 pendingPermissionRequest?.deny()
+                // 权限被拒绝，回退到图库选择
+                Toast.makeText(this, "相机权限被拒绝喵，请从相册选择二维码图片~", Toast.LENGTH_LONG).show()
+                launchImagePickerIntent()
             }
             pendingPermissionRequest = null
         }
@@ -247,6 +283,15 @@ class MainActivity : FragmentActivity() {
                 }
                 fileChooserCallback = null
                 cameraImageUri = null
+            }
+            REQ_GALLERY_IMAGE_PICK -> {
+                if (resultCode == RESULT_OK && data?.data != null) {
+                    fileChooserCallback?.onReceiveValue(arrayOf(data.data!!))
+                } else {
+                    fileChooserCallback?.onReceiveValue(null)
+                    webViewRef?.evaluateJavascript("if(window.cancelScanner)window.cancelScanner();", null)
+                }
+                fileChooserCallback = null
             }
             REQ_FILE_PICKER -> {
                 if (resultCode == RESULT_OK && data?.data != null) {
@@ -278,7 +323,7 @@ class MainActivity : FragmentActivity() {
 fun MainWebView(
     modifier: Modifier = Modifier,
     onWebPermissionRequested: (PermissionRequest) -> Unit,
-    onFileChooserRequested: (ValueCallback<Array<Uri>>, Boolean) -> Unit,
+    onFileChooserRequested: (ValueCallback<Array<Uri>>, Boolean, Array<String>) -> Unit,
     onWebViewCreated: (WebView) -> Unit,
     jsInterface: MainActivity.WebAppInterface
 ) {
@@ -316,7 +361,8 @@ fun MainWebView(
                     ): Boolean {
                         if (filePathCallback == null) return false
                         val isCameraCapture = fileChooserParams?.isCaptureEnabled == true
-                        onFileChooserRequested(filePathCallback, isCameraCapture)
+                        val acceptTypes = fileChooserParams?.acceptTypes ?: emptyArray()
+                        onFileChooserRequested(filePathCallback, isCameraCapture, acceptTypes)
                         return true
                     }
 

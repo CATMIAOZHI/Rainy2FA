@@ -1,6 +1,6 @@
 /**
  * 雨晴 2FA 核心脚本
- * 扫码方案：原生 input[capture] + BarcodeDetector，彻底抛弃 html5-qrcode
+ * 扫码方案：BarcodeDetector（优先）+ jsQR（兜底），支持拍照和图库选取
  */
 
 // 捕获致命错误，防止白屏无提示
@@ -33,6 +33,8 @@ const settingsModal  = document.getElementById('settings-modal');
 const scannerOverlay = document.getElementById('scanner-overlay');
 const toast          = document.getElementById('toast');
 const cameraInput    = document.getElementById('camera-input');
+const galleryInput   = document.getElementById('gallery-input');
+const qrCanvas       = document.getElementById('qr-canvas');
 
 // --- 渲染账号列表 ---
 function renderAccounts(filter = '') {
@@ -157,11 +159,11 @@ function saveData() {
     renderAccounts(document.getElementById('search-input')?.value || '');
 }
 
-// --- 扫码核心：原生 input[capture] + BarcodeDetector ---
+// --- 扫码核心：BarcodeDetector 优先 + jsQR 兜底 ---
 
 function openScanner() {
     if (addModal) addModal.style.display = 'none';
-    // 防白屏绝技！不用 display: none 隐藏底座，而是把它变得透明并且剥夺可点权！
+    // 把主界面变透明并禁止交互，防止遮挡
     if (appShell) {
         appShell.style.opacity = '0';
         appShell.style.pointerEvents = 'none';
@@ -171,6 +173,15 @@ function openScanner() {
     
     cameraInput.value = '';
     cameraInput.click();
+}
+
+function openGalleryPicker() {
+    const statusEl = document.getElementById('scanner-status');
+    if (statusEl) statusEl.innerText = '正在打开相册喵...';
+    galleryInput.value = '';
+    // 标记当前是图库选择，供 Kotlin 端按 MIME 类型分流
+    window._fileChooserType = 'image/*';
+    galleryInput.click();
 }
 
 function closeScanner() {
@@ -184,11 +195,64 @@ function closeScanner() {
     if (statusEl) statusEl.innerText = '正在唤起相机...';
 }
 
-// 供安卓底层原生直接呼唤的兜底方法喵！只要系统说没拿到照片，就立刻结束卡死！
+// 供安卓底层原生直接呼唤的兜底方法喵！
 window.cancelScanner = function() {
     showToast('主人刚刚什么都没拍喵~');
     closeScanner();
 };
+
+/**
+ * 核心扫码引擎：
+ * 1. 优先使用 BarcodeDetector（硬件加速，快喵~）
+ * 2. 如果不可用或失败，回退到 jsQR（纯 JS，兼容所有设备）
+ */
+async function scanQRFromFile(file) {
+    // 尝试硬件加速的 BarcodeDetector
+    if ('BarcodeDetector' in window) {
+        try {
+            const formats = await BarcodeDetector.getSupportedFormats();
+            if (formats.includes('qr_code')) {
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                const bitmap = await createImageBitmap(file);
+                const barcodes = await detector.detect(bitmap);
+                bitmap.close();
+                if (barcodes.length > 0) {
+                    return barcodes[0].rawValue;
+                }
+            }
+        } catch (e) {
+            // BarcodeDetector 失败，静默回退到 jsQR
+            console.log('BarcodeDetector 不可用，切换 jsQR 喵~', e.message);
+        }
+    }
+
+    // 回退：jsQR 纯 JS 方案
+    if (typeof jsQR !== 'undefined') {
+        const bitmap = await createImageBitmap(file);
+        const canvas = qrCanvas;
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+        bitmap.close();
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert'
+        });
+        // 如果默认方向没找到，试试翻转（处理亮色背景二维码）
+        if (!code) {
+            const codeInverted = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'onlyInvert'
+            });
+            if (codeInverted) return codeInverted.data;
+        } else {
+            return code.data;
+        }
+    }
+
+    // 两项都不可用（极端情况）
+    return null;
+}
 
 // 处理拍照结果
 cameraInput.addEventListener('change', async function(e) {
@@ -202,23 +266,41 @@ cameraInput.addEventListener('change', async function(e) {
     if (statusEl) statusEl.innerText = '正在扫视照片角角落落喵...';
 
     try {
-        if ('BarcodeDetector' in window) {
-            const detector = new BarcodeDetector({ formats: ['qr_code'] });
-            const bitmap = await createImageBitmap(file);
-            const barcodes = await detector.detect(bitmap);
-            
-            if (barcodes.length > 0) {
-                handleDecoded(barcodes[0].rawValue);
-            } else {
-                alert("喵呜？！雨晴看花了眼也没在这张照片里找到二维码喵！\n请主人重新对准带二维码的地方拍一张可以吗🐾");
-                closeScanner();
-            }
+        const decoded = await scanQRFromFile(file);
+        if (decoded) {
+            handleDecoded(decoded);
         } else {
-            alert("喵！非常抱歉，主人的设备好像不支持本地的高级扫码眼喵，这就帮您退回主界面~ 请手动输入捏！");
+            alert("喵呜？！雨晴看花了眼也没在这张照片里找到二维码喵！\n请主人重新对准带二维码的地方拍一张可以吗🐾\n\n💡 小贴士：也可以试试「从相册选择」扫描已有的二维码截图哦~");
             closeScanner();
         }
     } catch (err) {
         alert("识别照片时摔了一跤喵：\n" + err.message);
+        closeScanner();
+    }
+    e.target.value = '';
+});
+
+// 处理图库选取结果
+galleryInput.addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) {
+        closeScanner();
+        return;
+    }
+
+    const statusEl = document.getElementById('scanner-status');
+    if (statusEl) statusEl.innerText = '正在识别图库图片喵...';
+
+    try {
+        const decoded = await scanQRFromFile(file);
+        if (decoded) {
+            handleDecoded(decoded);
+        } else {
+            alert("喵呜？！这张图片里没有找到二维码喵！\n请主人换一张有二维码的图片试试吧~ 🐾");
+            closeScanner();
+        }
+    } catch (err) {
+        alert("识别图片时摔了一跤喵：\n" + err.message);
         closeScanner();
     }
     e.target.value = '';
@@ -237,7 +319,7 @@ function handleDecoded(decoded) {
         closeScanner();
         showToast('新账号添加成功喵！💖');
     } catch (e) {
-        // 如果是乱七八糟的二维码，就退回去展示居中漂漂亮亮的小弹窗喵！
+        // 非标准 2FA 二维码，展示内容让用户手动处理
         closeScanner();
         const invalidModal = document.getElementById('invalid-qr-modal');
         const invalidContent = document.getElementById('invalid-qr-content');
@@ -251,6 +333,7 @@ function handleDecoded(decoded) {
 // --- 事件绑定 ---
 document.getElementById('scan-btn').addEventListener('click', openScanner);
 document.getElementById('close-scanner-btn').addEventListener('click', closeScanner);
+document.getElementById('gallery-pick-btn')?.addEventListener('click', openGalleryPicker);
 document.getElementById('settings-btn').addEventListener('click', () => { settingsModal.style.display = 'flex'; });
 document.getElementById('close-settings').addEventListener('click', () => { settingsModal.style.display = 'none'; });
 document.getElementById('add-fab').addEventListener('click', () => { addModal.style.display = 'flex'; });
@@ -321,6 +404,7 @@ document.getElementById('export-btn')?.addEventListener('click', () => {
 });
 
 document.getElementById('import-trigger')?.addEventListener('click', () => {
+    window._fileChooserType = 'application/json';
     document.getElementById('import-file').click();
 });
 

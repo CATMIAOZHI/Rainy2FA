@@ -159,6 +159,8 @@
     <div id="scanner-overlay">
         <!-- 隐藏的原生相机触发器，capture=environment 直接调后置摄像头 -->
         <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;">
+        <!-- 隐藏的图库选择触发器（无 capture 属性，走相册） -->
+        <input type="file" id="gallery-input" accept="image/*" style="display:none;">
         <!-- 中央提示文字 -->
         <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:2; pointer-events:none;">
             <div style="color:white; font-size:20px; font-weight:bold; text-shadow:0 2px 10px #000; margin-bottom:20px;">对准二维码拍照喵 📷</div>
@@ -168,13 +170,18 @@
             <div id="scanner-status" style="color:#ff85a2; font-size:14px; margin-top:20px; text-shadow:0 1px 6px #000; text-align:center; padding:0 30px;">正在唤起相机...</div>
         </div>
         <!-- 返回按钮 -->
-        <div style="position:absolute; bottom:80px; left:0; width:100%; z-index:3; display:flex; justify-content:center;">
-            <button id="close-scanner-btn" style="padding:15px 60px; border-radius:50px; background:#ff85a2; color:white; border:none; font-size:18px; font-weight:bold; box-shadow:0 5px 20px rgba(255,133,162,0.4);">
+        <div style="position:absolute; bottom:80px; left:0; width:100%; z-index:3; display:flex; justify-content:center; gap:15px; padding:0 30px;">
+            <button id="gallery-pick-btn" style="padding:15px 30px; border-radius:50px; background:rgba(255,255,255,0.15); color:white; border:1.5px solid rgba(255,255,255,0.3); font-size:16px; font-weight:bold; backdrop-filter:blur(10px);">
+                🖼️ 从相册选择
+            </button>
+            <button id="close-scanner-btn" style="padding:15px 30px; border-radius:50px; background:#ff85a2; color:white; border:none; font-size:18px; font-weight:bold; box-shadow:0 5px 20px rgba(255,133,162,0.4);">
                 返回
             </button>
         </div>
+    <canvas id="qr-canvas" style="display:none;"></canvas>
     </div>
 
+    <script src="jsqr.min.js"></script>
     <script src="otpauth.umd.min.js"></script>
     <script src="script.js"></script>
 </body>

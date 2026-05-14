@@ -22,9 +22,9 @@ android {
         create("release") {
             storeFile = rootProject.file("release.jks")
             // 请通过环境变量或 gradle 属性传入喵！不要硬编码在源码里
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: project.findProperty("keystorePassword") as String? ?: "rainy2fa"
-            keyAlias = System.getenv("KEYSTORE_ALIAS") ?: project.findProperty("keystoreAlias") as String? ?: "rainy2fa"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("keyPassword") as String? ?: "rainy2fa"
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: project.findProperty("keystorePassword") as String? ?: ""
+            keyAlias = System.getenv("KEYSTORE_ALIAS") ?: project.findProperty("keystoreAlias") as String? ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("keyPassword") as String? ?: ""
         }
     }
 

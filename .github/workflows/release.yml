@@ -48,7 +48,7 @@ jobs:
 
       - name: Rename APK
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
+          TAG_NAME=${{ github.ref_name }}
           cp app/build/outputs/apk/release/app-release.apk "Rainy2FA-${TAG_NAME}.apk"
 
       - name: Create Release & Upload

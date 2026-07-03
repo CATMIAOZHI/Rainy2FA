@@ -58,8 +58,8 @@ bash setup_android_env.sh
 
 ## 版本
 
-- versionName: 1.1.2，versionCode: 4
-- Tag 格式：`v1.1.2`
+- versionName: 1，versionCode: 1
+- Tag 格式：`v1`
 
 ## 禁止事项
 

@@ -30,7 +30,7 @@
 
 | 方式 | 链接 |
 |------|------|
-| 📥 **最新版 APK** | [Rainy2FA-v1.1.2.apk](https://github.com/CATMIAOZHI/Rainy2FA/releases/download/v1.1.2/Rainy2FA-v1.1.2.apk) |
+| 📥 **最新版 APK** | [Rainy2FA-v1.apk](https://github.com/CATMIAOZHI/Rainy2FA/releases/download/v1/Rainy2FA-v1.apk) |
 | 📋 **所有版本** | [Releases 页面](https://github.com/CATMIAOZHI/Rainy2FA/releases) |
 
 > ⚠️ 请下载 Release 页面的签名 APK，不要直接克隆源码安装 Debug 版本喵~

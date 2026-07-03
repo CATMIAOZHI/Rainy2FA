@@ -46,6 +46,8 @@ bash setup_android_env.sh
 
 **ARM64 特别注意**：`gradle.properties` 已有 `android.aapt2.process.daemon=false`。如遇 AAPT2 启动失败，跑 `setup_android_env.sh`。
 
+**GitHub Actions 特别注意**：`settings.gradle.kts` 在 `GITHUB_ACTIONS=true` 时必须优先使用官方 `google()` / `mavenCentral()` / `gradlePluginPortal()`，不要让 CI 先走阿里云镜像；本地手机环境可继续使用国内镜像。
+
 ## CSS 修改注意事项
 
 `style.css` 是 WebView 内直接加载的资产文件。修改后必须 `clean` 构建（`./gradlew clean assembleDebug`），否则 Gradle 缓存可能不更新 APK 内的资源。可通过 `unzip -p <apk> assets/style.css` 验证打包内容。
@@ -54,7 +56,7 @@ bash setup_android_env.sh
 
 - 文件：`release.jks`（项目根目录）
 - Alias：`rainy2fa`，密码：`rainy2fa`
-- GitHub Actions 用 Secret `KEYSTORE_BASE64` 传入
+- GitHub Actions 必须使用 Secret `KEYSTORE_BASE64` 解码正式签名文件；Secret 为空、解码失败或缺少 `rainy2fa` alias 时必须失败，不要生成临时 keystore
 
 ## 版本
 

@@ -128,7 +128,7 @@ html, body {
     box-shadow: var(--shadow);
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     overflow: hidden;
@@ -139,17 +139,16 @@ html, body {
 
 .account-info {
     flex: 1;
-    min-width: 0;
     padding-right: 15px;
 }
 
 .issuer { 
     font-size: 0.8rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; 
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word; overflow-wrap: break-word; overflow: visible;
 }
 .label { 
     font-size: 1rem; color: var(--text-main); font-weight: 500; 
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word; overflow-wrap: break-word; overflow: visible;
 }
 
 .code-area { 
